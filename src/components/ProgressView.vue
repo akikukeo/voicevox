@@ -44,8 +44,7 @@ const deferredProgressStart = () => {
   // 3秒待ってから表示する
   timeoutId = setTimeout(() => {
     isShowProgress.value = true;
-    // }, 3000);
-  }, 0);
+  }, 3000);
 };
 
 watch(progress, (newValue, oldValue) => {

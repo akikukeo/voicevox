@@ -16,7 +16,6 @@
         />
       </KeepAlive>
       <AllDialog :isEnginesReady />
-      <ProgressView />
     </TooltipProvider>
   </ErrorBoundary>
 </template>
@@ -41,7 +40,6 @@ import { concatMenuBarData } from "@/components/Menu/MenuBar/menuBarData";
 import { isElectron } from "@/helpers/platform";
 import { useElectronMenuBarData } from "@/backend/electron/renderer/menuBarData";
 import { removeNullableAndBoolean } from "@/helpers/arrayHelper";
-import ProgressView from "@/components/ProgressView.vue";
 
 const store = useStore();
 

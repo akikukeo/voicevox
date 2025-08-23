@@ -181,7 +181,7 @@ export const projectStore = createPartialStore<ProjectStoreTypes>({
         ),
       });
 
-      if (parsedProjectData == undefined) {
+      if (parsedProjectData === undefined) {
         return undefined;
       }
 
@@ -197,89 +197,79 @@ export const projectStore = createPartialStore<ProjectStoreTypes>({
      */
     action: createUILockAction(
       async ({ actions, mutations, getters }, payload) => {
-        console.log("LOAD_PROJECT_FILE: action started");
-        void actions.START_PROGRESS();
-
-        // HACK: stateの変更をUIに反映させるために意図的に待つ
-        await new Promise((r) => setTimeout(r, 50));
-
-        try {
-          let filePath: undefined | string;
-          if (payload.type == "dialog") {
-            const ret = await window.backend.showOpenFileDialog({
-              title: "プロジェクトファイルの選択",
-              name: "VOICEVOX Project file",
-              mimeType: "application/json",
-              extensions: ["vvproj"],
-            });
-            if (ret == undefined) {
-              return false;
-            }
-            filePath = ret;
-          } else if (payload.type == "path") {
-            filePath = payload.filePath;
-          }
-
-          try {
-            let buf: Uint8Array;
-            if (filePath != undefined) {
-              buf = await window.backend
-                .readFile({ filePath })
-                .then(getValueOrThrow);
-
-              await actions.APPEND_RECENTLY_USED_PROJECT({
-                filePath,
-              });
-            } else {
-              if (payload.type != "file")
-                throw new UnreachableError("payload.type != 'file'");
-              buf = new Uint8Array(await payload.file.arrayBuffer());
-            }
-
-            const text = new TextDecoder("utf-8").decode(buf).trim();
-            const parsedProjectData = await actions.PARSE_PROJECT_FILE({
-              projectJson: text,
-            });
-
-            if (parsedProjectData == undefined) {
-              return false;
-            }
-
-            if (getters.IS_EDITED) {
-              const result = await actions.SAVE_OR_DISCARD_PROJECT_FILE({
-                additionalMessage:
-                  "プロジェクトをロードすると現在のプロジェクトは破棄されます。",
-              });
-              if (result == "canceled") {
-                return false;
-              }
-            }
-
-            await applyTalkProjectToStore(actions, parsedProjectData.talk);
-            await applySongProjectToStore(actions, parsedProjectData.song);
-
-            mutations.SET_PROJECT_FILEPATH({ filePath });
-            void actions.CLEAR_UNDO_HISTORY();
-            return true;
-          } catch (err) {
-            window.backend.logError(err);
-            const message = (() => {
-              if (typeof err === "string") return err;
-              if (!(err instanceof Error)) return "エラーが発生しました。";
-              if (err instanceof ResultError && err.code === "ENOENT")
-                return "プロジェクトファイルが見つかりませんでした。ファイルが移動、または削除された可能性があります。";
-              if (err instanceof ProjectFileFormatError)
-                return "ファイルフォーマットが正しくありません。";
-              return err.message;
-            })();
-            await showAlertDialog({
-              title: "エラー",
-              message: `プロジェクトファイルの読み込みに失敗しました。\n${message}`,
-            });
+        let filePath: undefined | string;
+        if (payload.type == "dialog") {
+          const ret = await window.backend.showOpenFileDialog({
+            title: "プロジェクトファイルの選択",
+            name: "VOICEVOX Project file",
+            mimeType: "application/json",
+            extensions: ["vvproj"],
+          });
+          if (ret == undefined) {
             return false;
           }
-        } finally {
-          void actions.RESET_PROGRESS();
+          filePath = ret;
+        } else if (payload.type == "path") {
+          filePath = payload.filePath;
+        }
+
+        try {
+          let buf: Uint8Array;
+          if (filePath != undefined) {
+            buf = await window.backend
+              .readFile({ filePath })
+              .then(getValueOrThrow);
+
+            await actions.APPEND_RECENTLY_USED_PROJECT({
+              filePath,
+            });
+          } else {
+            if (payload.type != "file")
+              throw new UnreachableError("payload.type != 'file'");
+            buf = new Uint8Array(await payload.file.arrayBuffer());
+          }
+
+          const text = new TextDecoder("utf-8").decode(buf).trim();
+          const parsedProjectData = await actions.PARSE_PROJECT_FILE({
+            projectJson: text,
+          });
+
+          if (parsedProjectData === undefined) {
+            return false;
+          }
+
+          if (getters.IS_EDITED) {
+            const result = await actions.SAVE_OR_DISCARD_PROJECT_FILE({
+              additionalMessage:
+                "プロジェクトをロードすると現在のプロジェクトは破棄されます。",
+            });
+            if (result == "canceled") {
+              return false;
+            }
+          }
+
+          await applyTalkProjectToStore(actions, parsedProjectData.talk);
+          await applySongProjectToStore(actions, parsedProjectData.song);
+
+          mutations.SET_PROJECT_FILEPATH({ filePath });
+          void actions.CLEAR_UNDO_HISTORY();
+          return true;
+        } catch (err) {
+          window.backend.logError(err);
+          const message = (() => {
+            if (typeof err === "string") return err;
+            if (!(err instanceof Error)) return "エラーが発生しました。";
+            if (err instanceof ResultError && err.code === "ENOENT")
+              return "プロジェクトファイルが見つかりませんでした。ファイルが移動、または削除された可能性があります。";
+            if (err instanceof ProjectFileFormatError)
+              return "ファイルフォーマットが正しくありません。";
+            return err.message;
+          })();
+          await showAlertDialog({
+            title: "エラー",
+            message: `プロジェクトファイルの読み込みに失敗しました。\n${message}`,
+          });
+          return false;
         }
       },
     ),

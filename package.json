@@ -49,12 +49,7 @@
     "postinstall": "pnpm run postinstall:packages && pnpm run postinstall:download-scripts",
     "postinstall:packages": "electron-builder install-app-deps && playwright install chromium",
     "postinstall:download-scripts": "tsx tools/download7z.ts && tsx tools/downloadTypos.ts",
-    "postuninstall": "electron-builder install-app-deps",
-
-    "// --- ADD ---": "",
-    "autoAllTest": "pnpm run fmt && pnpm run lint && pnpm run typos && pnpm run typecheck && pnpm run electron:build && pnpm run test:unit && pnpm run test-watch:unit && pnpm run test-ui:unit && pnpm run test:unit --update && pnpm run test:browser-e2e && pnpm run test-watch:browser-e2e",
-    "autoAllTestCi": "pnpm run fmt && pnpm run lint && pnpm run typos && pnpm run typecheck && pnpm run electron:build -- --yes && pnpm run test:unit --update && pnpm run test:unit && pnpm run test:browser-e2e"
-
+    "postuninstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "@gtm-support/vue-gtm": "3.1.0",
