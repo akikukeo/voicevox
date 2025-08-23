@@ -4,7 +4,6 @@
 
     <QPageContainer>
       <QPage class="main-row-panes">
-        <ProgressView />
         <EngineStartupOverlay :isCompletedInitialStartup />
 
         <QSplitter
