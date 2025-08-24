@@ -1,7 +1,12 @@
 <template>
   <div v-if="isProjectLoading" class="loading-project">
     <div>
-      <QSpinner color="primary" size="2.5rem" />
+      <QCircularProgress
+        indeterminate
+        color="primary"
+        size="2.5rem"
+        :thickness="0.2"
+      />
       <div class="q-mt-xs">プロジェクト読み込み中・・・</div>
     </div>
   </div>
