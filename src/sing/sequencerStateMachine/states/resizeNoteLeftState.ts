@@ -10,6 +10,7 @@ import {
   Input,
   PositionOnSequencer,
   SequencerStateDefinitions,
+  shouldStartDrag,
 } from "@/sing/sequencerStateMachine/common";
 import { clamp } from "@/sing/utility";
 
@@ -25,6 +26,7 @@ export class ResizeNoteLeftState
   private readonly returnStateId: IdleStateId;
 
   private currentCursorPos: PositionOnSequencer;
+  private dragging: boolean;
   private applyPreview: boolean;
 
   private innerContext:
@@ -54,6 +56,7 @@ export class ResizeNoteLeftState
     this.returnStateId = args.returnStateId;
 
     this.currentCursorPos = args.cursorPosAtStart;
+    this.dragging = false;
     this.applyPreview = false;
   }
 
@@ -107,15 +110,23 @@ export class ResizeNoteLeftState
     if (this.innerContext == undefined) {
       throw new Error("innerContext is undefined.");
     }
-    if (input.type === "mouseEvent") {
-      const mouseButton = getButton(input.mouseEvent);
+    if (input.type === "pointerEvent") {
+      const mouseButton = getButton(input.pointerEvent);
 
       if (input.targetArea === "Window") {
-        if (input.mouseEvent.type === "mousemove") {
+        if (input.pointerEvent.type === "pointermove") {
           this.currentCursorPos = input.cursorPos;
-          this.innerContext.executePreviewProcess = true;
+          if (
+            !this.dragging &&
+            shouldStartDrag(this.cursorPosAtStart, this.currentCursorPos)
+          ) {
+            this.dragging = true;
+          }
+          if (this.dragging) {
+            this.innerContext.executePreviewProcess = true;
+          }
         } else if (
-          input.mouseEvent.type === "mouseup" &&
+          input.pointerEvent.type === "pointerup" &&
           mouseButton === "LEFT_BUTTON"
         ) {
           this.applyPreview = this.innerContext.edited;
